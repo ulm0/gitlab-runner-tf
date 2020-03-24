@@ -36,7 +36,7 @@ resource "scaleway_server" "runner" {
 
   provisioner "remote-exec" {
     inline = [
-      templatefile(format("%s/files/runner.tpl",path.module), local.runner_params),
+      templatefile(format("%s/files/runner.tpl", path.module), local.runner_params),
     ]
   }
 
