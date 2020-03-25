@@ -4,5 +4,6 @@ locals {
     concurrency  = var.runner_concurrency
     gitlab_site  = var.gitlab_site
     gitlab_token = var.gitlab_token
+    run_untagged = var.run_untagged
   }
 }

@@ -31,6 +31,9 @@ docker exec -it runner \
 %{ if add_tags ~}
     --tag-list "docker,$runnerArch" \
 %{ endif ~}
+%{ if run_untagged ~}
+    --run-untagged \
+%{ endif ~}
     --docker-privileged
 
 sed -i -e 's|concurrent = 1|concurrent = ${concurrency}|g' /root/.runner/config.toml
