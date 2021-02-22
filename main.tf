@@ -5,7 +5,7 @@ resource "tls_private_key" "runner_key" {
 }
 
 resource "aws_key_pair" "runner_key" {
-  key_name   = "ssh-key-ci-runner"
+  key_name   = format("ssh-key-ci-runner-%s", local.run_as_platform)
   public_key = local.public_key
 }
 
@@ -37,7 +37,7 @@ resource "aws_instance" "runner" {
   associate_public_ip_address = true
 
   tags = {
-    Name = "GitLab CI runner"
+    Name = format("GitLab CI %s runner", local.run_as_platform)
   }
 }
 
