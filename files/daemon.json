@@ -1,0 +1,14 @@
+{
+  "experimental": true,
+  "debug": true,
+  "features": {
+    "buildkit": true
+  },
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "10"
+  },
+  "live-restore": true,
+  "max-concurrent-downloads": 10
+}

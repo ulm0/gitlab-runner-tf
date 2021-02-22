@@ -1,3 +1,7 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
 nodeArch="$(uname -m)"
 
 runner_image='klud/gitlab-runner'
@@ -13,9 +17,10 @@ esac
 docker run \
     -d \
     --name runner \
+    --platform=${run_as_platform} \
     --restart=always \
     -v /var/run/docker.sock:/var/run/docker.sock \
-    -v /root/.runner:/etc/gitlab-runner \
+    -v $HOME/.runner:/etc/gitlab-runner \
     $runner_image
 
 docker exec -it runner \

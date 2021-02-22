@@ -1,37 +1,85 @@
 resource "tls_private_key" "runner_key" {
+  count     = var.create_ssh_key ? 1 : 0
   algorithm = "RSA"
-  rsa_bits  = "4096"
+  rsa_bits  = "8192"
 }
 
-data "scaleway_image" "docker" {
-  architecture = var.arch
-  name         = "Docker"
-  most_recent  = true
+resource "aws_key_pair" "runner_key" {
+  key_name   = "ssh-key-ci-runner"
+  public_key = local.public_key
 }
 
-resource "scaleway_account_ssh_key" "runner_key" {
-  name       = format("ssh-key-%s", var.arch)
-  public_key = tls_private_key.runner_key.public_key_openssh
+data "aws_ami" "ubuntu" {
+  most_recent = true
+
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-*"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  filter {
+    name   = "architecture"
+    values = [var.arch]
+  }
+
+  owners = ["099720109477"] # Canonical
 }
 
-data "scaleway_bootscript" "bootscript" {
-  architecture = var.arch
-  name_filter  = var.bootscript_name_filter
+resource "aws_instance" "runner" {
+  ami                         = data.aws_ami.ubuntu.id
+  instance_type               = var.instance_type
+  key_name                    = aws_key_pair.runner_key.key_name
+  associate_public_ip_address = true
+
+  tags = {
+    Name = "GitLab CI runner"
+  }
 }
 
-resource "scaleway_server" "runner" {
-  name                = format("runner-%s", var.arch)
-  image               = data.scaleway_image.docker.id
-  dynamic_ip_required = true
-  type                = var.server_type
-  boot_type           = "bootscript"
-  bootscript          = data.scaleway_bootscript.bootscript.id
+resource "null_resource" "bootstrap_runner" {
+  depends_on = [tls_private_key.runner_key]
+  triggers = {
+    host        = aws_instance.runner.public_ip
+    private_key = local.private_key
+  }
 
   connection {
     type        = "ssh"
-    user        = "root"
-    host        = self.public_ip
-    private_key = tls_private_key.runner_key.private_key_pem
+    host        = self.triggers.host
+    user        = "ubuntu"
+    private_key = self.triggers.private_key
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      file(format("%s/files/docker.sh", path.module)),
+    ]
+  }
+
+  provisioner "file" {
+    source      = format("%s/files/daemon.json", path.module)
+    destination = "/home/ubuntu/daemon.json"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo mkdir -p /etc/docker",
+      "sudo mv /home/ubuntu/daemon.json /etc/docker/daemon.json",
+      "sudo chown 0:0 /etc/docker/daemon.json",
+      "sudo chmod 0644 /etc/docker/daemon.json"
+    ]
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo systemctl daemon-reload",
+      "sudo systemctl restart docker"
+    ]
   }
 
   provisioner "remote-exec" {
