@@ -41,7 +41,7 @@ docker exec -it runner \
 %{ endif ~}
     --docker-privileged
 
-sed -i -e 's|concurrent = 1|concurrent = ${concurrency}|g' /root/.runner/config.toml
-sed -i -e 's|"/cache"|"/var/run/docker.sock:/var/run/docker.sock","/cache"|g' /root/.runner/config.toml
+sudo sed -i -e 's|concurrent = 1|concurrent = ${concurrency}|g' $HOME/.runner/config.toml
+sudo sed -i -e 's|"/cache"|"/var/run/docker.sock:/var/run/docker.sock","/cache"|g' $HOME/.runner/config.toml
 
 docker restart runner
