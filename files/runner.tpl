@@ -34,7 +34,7 @@ docker exec -it runner \
     --description "$runnerArch runner" \
     --docker-image "docker:17.12" \
 %{ if add_tags ~}
-    --tag-list "docker,$runnerArch" \
+    --tag-list "docker,${run_as_platform}" \
 %{ endif ~}
 %{ if run_untagged ~}
     --run-untagged \
