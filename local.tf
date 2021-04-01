@@ -1,4 +1,5 @@
 locals {
+  instance_name = var.name == "" ? format("GitLab CI %s runner", local.run_as_platform) : var.name
   runner_params = {
     add_tags        = var.add_tags
     concurrency     = var.runner_concurrency

@@ -1,3 +1,7 @@
+variable "name" {
+  type    = string
+  default = ""
+}
 variable "add_tags" {
   type    = bool
   default = true

@@ -37,7 +37,7 @@ resource "aws_instance" "runner" {
   associate_public_ip_address = true
 
   tags = {
-    Name = format("GitLab CI %s runner", local.run_as_platform)
+    Name = local.instance_name
   }
 }
 
